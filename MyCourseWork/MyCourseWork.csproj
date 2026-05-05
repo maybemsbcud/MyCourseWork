@@ -8,8 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Models\"/>
         <AvaloniaResource Include="Assets\**"/>
+        <Folder Include="Models\Algorithms\" />
+        <Folder Include="Models\Services\" />
     </ItemGroup>
 
     <ItemGroup>
