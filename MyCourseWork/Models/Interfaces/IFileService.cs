@@ -5,7 +5,7 @@ namespace MyCourseWork.Models.Interfaces;
 
 public interface IFileService
 {
-    Task<WriteableBitmap?> readImage(string path);
+    Task<WriteableBitmap?> loadImageAsync(string path);
     
-    Task saveImage(WriteableBitmap bitmap ,string path);
+    Task saveImageAsync(WriteableBitmap bitmap ,string path);
 }
