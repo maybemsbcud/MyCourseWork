@@ -8,16 +8,16 @@ namespace MyCourseWork.Services;
 
 public class ImageProcessor : IImageProcessingService
 {
-    private readonly IFileService fileService;
+    private readonly IFileService _fileService;
     public ImageProcessor(IFileService fileService)
     {
-        this.fileService = fileService;
+        _fileService = fileService;
     }
     
     
     public async Task<WriteableBitmap?> ProcessImageAsync(string inputPath, int newWidth, int newHeight, IImageResizer resizer)
     {
-        WriteableBitmap? newImage = await fileService.loadImageAsync(inputPath);
+        WriteableBitmap? newImage = await _fileService.loadImageAsync(inputPath);
         ArgumentNullException.ThrowIfNull(newImage);
         
         ImageData newImageReadyToWork = ImageConverter.ToImageData(newImage);
@@ -26,6 +26,5 @@ public class ImageProcessor : IImageProcessingService
         
         WriteableBitmap finalImage = ImageConverter.ToWriteableBitmap(upScaledImage);
         return finalImage;
-
     }
 }
