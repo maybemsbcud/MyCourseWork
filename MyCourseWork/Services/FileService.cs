@@ -7,7 +7,7 @@ namespace MyCourseWork.Services;
 
 public class FileService : IFileService
 {
-    public async Task<WriteableBitmap?> readImage(string path)
+    public async Task<WriteableBitmap?> loadImageAsync(string path)
     {
         using (var stream = File.OpenRead(path))
         {
@@ -15,7 +15,7 @@ public class FileService : IFileService
         }
     }
 
-    public async Task saveImage(WriteableBitmap bitmap, string path)
+    public async Task saveImageAsync(WriteableBitmap bitmap, string path)
     {
         await Task.Run(() => bitmap.Save(path));
     }
