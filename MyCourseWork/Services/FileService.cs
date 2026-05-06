@@ -17,6 +17,6 @@ public class FileService : IFileService
 
     public async Task saveImage(WriteableBitmap bitmap, string path)
     {
-        
+        await Task.Run(() => bitmap.Save(path));
     }
 }
