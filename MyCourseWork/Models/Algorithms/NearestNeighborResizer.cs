@@ -16,7 +16,7 @@ public class NearestNeighborResizer : IImageResizer
         {
             for (int j = 0; j < newWidth; j++)
             {
-                int index = i * newStride + j * source.BytesPerPixel;
+                int index = i * newStride + j * source.BytesPerPixel; 
                 for (int k = 0; k < source.BytesPerPixel; k++)
                 {
                     newPixels[index + k] = source.Pixels[(int)(i * ratioY) * source.Stride + (int)(j * ratioX) * source.BytesPerPixel + k];
