@@ -3,18 +3,44 @@
         xmlns:vm="using:MyCourseWork.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="MyCourseWork.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="MyCourseWork">
+        x:DataType="vm:MainWindowViewModel" 
+        Title="Image Resizer">
+    <Grid RowDefinitions="Auto, *">
+        
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="10">
+            <Button Content="Відкрити" Command="{Binding LoadImageCommand}" />
+            <Button Content="Зберегти" Command="{Binding SaveImageCommand}" />
+            
+            <Separator />
 
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
+            <TextBlock Text="Ширина:" VerticalAlignment="Center" Margin="5,0,0,0"/>
+            <NumericUpDown Value="{Binding NewWidth}" Minimum="1" Maximum="10000" />
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock Text="Висота:" VerticalAlignment="Center" Margin="5,0,0,0"/>
+            <NumericUpDown Value="{Binding NewHeight}" Minimum="1" Maximum="10000" />
+            
+            <ComboBox PlaceholderText="Алгоритм" 
+                      ItemsSource="{Binding AvailableAlgorithms}" 
+                      SelectedItem="{Binding SelectedAlgorithm}">
+            </ComboBox>
+            
+            <Button Content="Запустити" Command="{Binding ProcessImageCommand}" Background="DarkGreen" Foreground="White"/>
+        </StackPanel>
 
+        <Grid Grid.Row="1" ColumnDefinitions="*, *">
+            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Image Source="{Binding OriginalImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" />
+                </ScrollViewer>
+            </Border>
+            
+            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <Image Source="{Binding ResultImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" /> 
+                </ScrollViewer>
+            </Border>
+        </Grid>
+        
+    </Grid>
 </Window>
