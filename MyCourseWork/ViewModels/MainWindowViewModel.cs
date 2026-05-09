@@ -38,6 +38,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             new NearestNeighborResizer(),
             new BilinearResizer(),
+            new BicubicResizer()
         };
     }
 
@@ -83,8 +84,41 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveImageAsync()
     {
+        // Якщо результату ще немає, натискання кнопки ігнорується
         if (ResultImage == null) return;
         
-        // Заглушка, щоб не підкреслювало в XAML. Напишемо пізніше.
+        // Налаштовуємо системне вікно збереження
+        var options = new FilePickerSaveOptions
+        {
+            Title = "Зберегти зображення",
+            DefaultExtension = "png", // За замовчуванням пропонуємо PNG (щоб без артефактів!)
+            SuggestedFileName = "resized_image",
+            FileTypeChoices = new[]
+            {
+                new FilePickerFileType("PNG зображення") { Patterns = new[] { "*.png" } },
+                new FilePickerFileType("JPEG зображення") { Patterns = new[] { "*.jpg", "*.jpeg" } }
+            }
+        };
+
+        // Відкриваємо нативне вікно Fedora для вибору місця збереження
+        var file = await _storageProvider.SaveFilePickerAsync(options);
+
+        // Якщо користувач вибрав папку і натиснув "Зберегти" (а не "Скасувати")
+        if (file != null)
+        {
+            try
+            {
+                // Відкриваємо потік для запису
+                await using var stream = await file.OpenWriteAsync();
+                
+                // Вбудований метод Avalonia, який бере пікселі з WriteableBitmap і пише їх у файл
+                ResultImage.Save(stream);
+            }
+            catch (System.Exception ex)
+            {
+                // На випадок, якщо немає прав на запис у вибрану папку
+                System.Console.WriteLine($"Помилка збереження файлу: {ex.Message}");
+            }
+        }
     }
 }
