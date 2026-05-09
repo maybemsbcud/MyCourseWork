@@ -36,7 +36,8 @@ public partial class MainWindowViewModel : ViewModelBase
         // Розкоментуй цей рядок, якщо в тебе вже створений клас NearestNeighborResizer
         AvailableAlgorithms = new List<IImageResizer>
         {
-            new NearestNeighborResizer() 
+            new NearestNeighborResizer(),
+            new BilinearResizer(),
         };
     }
 
