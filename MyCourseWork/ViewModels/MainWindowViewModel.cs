@@ -6,6 +6,10 @@ using MyCourseWork.Models.Interfaces;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using MyCourseWork.Models.Algorithms;
+using System.Threading;
+using System;
+using System.Diagnostics;
+using MyCourseWork.Models.Filters;
 
 namespace MyCourseWork.ViewModels;
 
@@ -16,12 +20,42 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IStorageProvider _storageProvider;
 
     private string? _currentFilePath;
+    private CancellationTokenSource? _cancellationTokenSource;
 
     [ObservableProperty] private WriteableBitmap? _originalImage;
     [ObservableProperty] private WriteableBitmap? _resultImage;
     
-    [ObservableProperty] private decimal _newWidth = 800;
-    [ObservableProperty] private decimal _newHeight = 600;
+    [ObservableProperty] private decimal? _newWidth = 800m;
+    [ObservableProperty] private decimal? _newHeight = 600m;
+
+    [ObservableProperty] private bool _isProcessing;
+
+    [ObservableProperty] private bool _keepAspectRatio = true;
+    
+    [ObservableProperty] private bool _useSharpenFilter = false; 
+
+    [ObservableProperty] private string _originalDimensionsText = "";
+    [ObservableProperty] private string _resultDimensionsText = "";
+    [ObservableProperty] private string _processingTimeText = "";
+
+    private decimal _aspectRatio = 1m;
+    private bool _isUpdatingDimensions = false;
+
+    partial void OnNewWidthChanged(decimal? value)
+    {
+        if (_isUpdatingDimensions || !KeepAspectRatio || value == null || _aspectRatio == 0) return;
+        _isUpdatingDimensions = true;
+        NewHeight = Math.Round(value.Value / _aspectRatio);
+        _isUpdatingDimensions = false;
+    }
+
+    partial void OnNewHeightChanged(decimal? value)
+    {
+        if (_isUpdatingDimensions || !KeepAspectRatio || value == null || _aspectRatio == 0) return;
+        _isUpdatingDimensions = true;
+        NewWidth = Math.Round(value.Value * _aspectRatio);
+        _isUpdatingDimensions = false;
+    }
 
     [ObservableProperty] private IImageResizer? _selectedAlgorithm;
     public List<IImageResizer> AvailableAlgorithms { get; }
@@ -32,8 +66,6 @@ public partial class MainWindowViewModel : ViewModelBase
         _processor = processor;
         _storageProvider = storageProvider;
 
-        // ВАЖЛИВО: Щоб XAML міг показати список алгоритмів, їх треба тут додати!
-        // Розкоментуй цей рядок, якщо в тебе вже створений клас NearestNeighborResizer
         AvailableAlgorithms = new List<IImageResizer>
         {
             new NearestNeighborResizer(),
@@ -61,8 +93,15 @@ public partial class MainWindowViewModel : ViewModelBase
 
             if (OriginalImage != null)
             {
+                _aspectRatio = (decimal)OriginalImage.Size.Width / (decimal)OriginalImage.Size.Height;
+                
                 NewWidth = (decimal)OriginalImage.Size.Width;
                 NewHeight = (decimal)OriginalImage.Size.Height;
+                ResultImage = null; 
+                
+                OriginalDimensionsText = $"Оригінал: {OriginalImage.Size.Width} x {OriginalImage.Size.Height} px";
+                ResultDimensionsText = "";
+                ProcessingTimeText = "";
             }
         }
     }
@@ -73,25 +112,64 @@ public partial class MainWindowViewModel : ViewModelBase
         if (OriginalImage == null || SelectedAlgorithm == null || string.IsNullOrEmpty(_currentFilePath)) 
             return;
 
-        ResultImage = await _processor.ProcessImageAsync(
-            _currentFilePath,
-            (int)NewWidth,
-            (int)NewHeight,
-            SelectedAlgorithm
-        );
+        _cancellationTokenSource = new CancellationTokenSource();
+        IsProcessing = true;
+        
+        ProcessingTimeText = "Обробка...";
+        var sw = Stopwatch.StartNew();
+        
+        var activeFilters = new List<IImageFilter>();
+        if (UseSharpenFilter)
+        {
+            activeFilters.Add(new SharpenFilter());
+        }
+
+        try
+        {
+            ResultImage = await _processor.ProcessImageAsync(
+                _currentFilePath,
+                (int)(NewWidth ?? 1),
+                (int)(NewHeight ?? 1),
+                SelectedAlgorithm,
+                activeFilters,
+                _cancellationTokenSource.Token 
+            );
+            
+            if (ResultImage != null)
+                ResultDimensionsText = $"Результат: {ResultImage.Size.Width} x {ResultImage.Size.Height} px";
+        }
+        catch (OperationCanceledException)
+        {
+            ProcessingTimeText = "Скасовано";
+            Console.WriteLine("Обробку зображення було перервано!");
+        }
+        finally
+        {
+            sw.Stop();
+            if (ProcessingTimeText != "Скасовано")
+                ProcessingTimeText = $"Час: {sw.ElapsedMilliseconds} мс";
+                
+            IsProcessing = false;
+            _cancellationTokenSource?.Dispose();
+            _cancellationTokenSource = null;
+        }
+    }
+
+    [RelayCommand]
+    private void CancelProcessing()
+    {
+        _cancellationTokenSource?.Cancel();
     }
 
     [RelayCommand]
     private async Task SaveImageAsync()
     {
-        // Якщо результату ще немає, натискання кнопки ігнорується
         if (ResultImage == null) return;
         
-        // Налаштовуємо системне вікно збереження
         var options = new FilePickerSaveOptions
         {
             Title = "Зберегти зображення",
-            DefaultExtension = "png", // За замовчуванням пропонуємо PNG (щоб без артефактів!)
+            DefaultExtension = "png",
             SuggestedFileName = "resized_image",
             FileTypeChoices = new[]
             {
@@ -100,24 +178,18 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         };
 
-        // Відкриваємо нативне вікно Fedora для вибору місця збереження
         var file = await _storageProvider.SaveFilePickerAsync(options);
 
-        // Якщо користувач вибрав папку і натиснув "Зберегти" (а не "Скасувати")
         if (file != null)
         {
             try
             {
-                // Відкриваємо потік для запису
                 await using var stream = await file.OpenWriteAsync();
-                
-                // Вбудований метод Avalonia, який бере пікселі з WriteableBitmap і пише їх у файл
                 ResultImage.Save(stream);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                // На випадок, якщо немає прав на запис у вибрану папку
-                System.Console.WriteLine($"Помилка збереження файлу: {ex.Message}");
+                Console.WriteLine($"Помилка збереження файлу: {ex.Message}");
             }
         }
     }

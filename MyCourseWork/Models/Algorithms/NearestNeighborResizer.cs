@@ -1,3 +1,4 @@
+using System.Threading;
 using MyCourseWork.Models.Interfaces;
 
 namespace MyCourseWork.Models.Algorithms;
@@ -6,7 +7,7 @@ public class NearestNeighborResizer : IImageResizer
 {
     public string Name => "Nearest Neighbor Resizer";
 
-    public ImageData Resize(ImageData source, int newWidth, int newHeight)
+    public ImageData Resize(ImageData source, int newWidth, int newHeight, CancellationToken token = default)
     {
         int newStride = ((newWidth * source.BytesPerPixel + 3) / 4) * 4;
         byte[] newPixels = new byte[newHeight * newStride];
@@ -14,6 +15,7 @@ public class NearestNeighborResizer : IImageResizer
         double ratioY = (double)source.Height / newHeight;
         for (int i = 0; i < newHeight; i++)
         {
+            token.ThrowIfCancellationRequested();
             for (int j = 0; j < newWidth; j++)
             {
                 int index = i * newStride + j * source.BytesPerPixel; 

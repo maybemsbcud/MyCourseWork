@@ -1,5 +1,6 @@
 using MyCourseWork.Models.Interfaces;
 using System;
+using System.Threading;
 
 namespace MyCourseWork.Models.Algorithms;
 
@@ -28,7 +29,7 @@ public class BicubicResizer : IImageResizer
         return 0.0f;
     }
 
-    public ImageData Resize(ImageData source, int newWidth, int newHeight)
+    public ImageData Resize(ImageData source, int newWidth, int newHeight, CancellationToken token = default )
     {
         int bpp = source.BytesPerPixel;
         int newStride = ((newWidth * bpp + 3) / 4) * 4;
@@ -40,6 +41,7 @@ public class BicubicResizer : IImageResizer
         // Проходимо по кожному пікселю НОВОГО зображення
         for (int y = 0; y < newHeight; y++)
         {
+            token.ThrowIfCancellationRequested();
             float srcY = y * ratioY;
             int yInt = (int)srcY;     // Ціла координата Y в оригіналі
             float dy = srcY - yInt;   // Дробовий зсув по Y

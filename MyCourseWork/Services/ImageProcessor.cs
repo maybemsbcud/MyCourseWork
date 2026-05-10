@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic; // --- НОВЕ: Потрібно для IEnumerable
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using MyCourseWork.Models;
@@ -9,22 +11,44 @@ namespace MyCourseWork.Services;
 public class ImageProcessor : IImageProcessingService
 {
     private readonly IFileService _fileService;
+    
     public ImageProcessor(IFileService fileService)
     {
         _fileService = fileService;
     }
     
-    
-    public async Task<WriteableBitmap?> ProcessImageAsync(string inputPath, int newWidth, int newHeight, IImageResizer resizer)
+    // --- НОВЕ: Додано IEnumerable<IImageFilter> filters у параметри ---
+    public async Task<WriteableBitmap?> ProcessImageAsync(
+        string inputPath, 
+        int newWidth, 
+        int newHeight, 
+        IImageResizer resizer, 
+        IEnumerable<IImageFilter> filters, 
+        CancellationToken token = default)
     {
         WriteableBitmap? newImage = await _fileService.loadImageAsync(inputPath);
         ArgumentNullException.ThrowIfNull(newImage);
         
+        token.ThrowIfCancellationRequested();
+        
         ImageData newImageReadyToWork = ImageConverter.ToImageData(newImage);
 
-        ImageData upScaledImage = await Task.Run(() =>  resizer.Resize(newImageReadyToWork, newWidth, newHeight));
+        token.ThrowIfCancellationRequested();
+
+        ImageData processedImage = await Task.Run(() => resizer.Resize(newImageReadyToWork, newWidth, newHeight, token), token);
         
-        WriteableBitmap finalImage = ImageConverter.ToWriteableBitmap(upScaledImage);
+        if (filters != null)
+        {
+            foreach (var filter in filters)
+            {
+                token.ThrowIfCancellationRequested();
+                processedImage = await Task.Run(() => filter.Apply(processedImage, token), token);
+            }
+        }
+
+        token.ThrowIfCancellationRequested();
+        
+        WriteableBitmap finalImage = ImageConverter.ToWriteableBitmap(processedImage);
         return finalImage;
     }
 }
