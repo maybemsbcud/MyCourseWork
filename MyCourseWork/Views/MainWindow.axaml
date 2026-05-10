@@ -1,45 +1,69 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MyCourseWork.ViewModels"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         x:Class="MyCourseWork.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel" 
         Title="Image Resizer">
-    <Grid RowDefinitions="Auto, *">
+    
+    <Grid RowDefinitions="Auto, *, Auto">
         
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="10">
-            <Button Content="Відкрити" Command="{Binding LoadImageCommand}" />
-            <Button Content="Зберегти" Command="{Binding SaveImageCommand}" />
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="10" VerticalAlignment="Center">
             
-            <Separator />
+            <Button Content="Відкрити" Command="{Binding LoadImageCommand}" IsEnabled="{Binding !IsProcessing}" VerticalAlignment="Center"/>
+            <Button Content="Зберегти" Command="{Binding SaveImageCommand}" IsEnabled="{Binding !IsProcessing}" VerticalAlignment="Center"/>
+            <Separator Width="1" Height="25" Background="Gray" Margin="5,0"/>
 
-            <TextBlock Text="Ширина:" VerticalAlignment="Center" Margin="5,0,0,0"/>
-            <NumericUpDown Value="{Binding NewWidth}" Minimum="1" Maximum="10000" />
-
-            <TextBlock Text="Висота:" VerticalAlignment="Center" Margin="5,0,0,0"/>
-            <NumericUpDown Value="{Binding NewHeight}" Minimum="1" Maximum="10000" />
+            <TextBlock Text="Ш:" VerticalAlignment="Center"/>
+            <NumericUpDown Value="{Binding NewWidth}" Minimum="1" Maximum="20000" IsEnabled="{Binding !IsProcessing}" Width="80" VerticalAlignment="Center" ShowButtonSpinner="False"/>
+            <TextBlock Text="px" VerticalAlignment="Center"/>
             
+            <TextBlock Text="В:" VerticalAlignment="Center" Margin="5,0,0,0"/>
+            <NumericUpDown Value="{Binding NewHeight}" Minimum="1" Maximum="20000" IsEnabled="{Binding !IsProcessing}" Width="80" VerticalAlignment="Center" ShowButtonSpinner="False"/>
+            <TextBlock Text="px" VerticalAlignment="Center"/>
+
+            <CheckBox Content="Пропорції" IsChecked="{Binding KeepAspectRatio}" IsEnabled="{Binding !IsProcessing}" VerticalAlignment="Center"/>
+            
+            <CheckBox Content="+ Різкість" IsChecked="{Binding UseSharpenFilter}" IsEnabled="{Binding !IsProcessing}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+            
+            <Separator Width="1" Height="25" Background="Gray" Margin="5,0"/>
+
             <ComboBox PlaceholderText="Алгоритм" 
                       ItemsSource="{Binding AvailableAlgorithms}" 
-                      SelectedItem="{Binding SelectedAlgorithm}">
+                      SelectedItem="{Binding SelectedAlgorithm}"
+                      IsEnabled="{Binding !IsProcessing}"
+                      DisplayMemberBinding="{Binding Name}"
+                      VerticalAlignment="Center" Width="200">
             </ComboBox>
             
-            <Button Content="Запустити" Command="{Binding ProcessImageCommand}" Background="DarkGreen" Foreground="White"/>
+            <Button Content="Запустити" Command="{Binding ProcessImageCommand}" IsVisible="{Binding !IsProcessing}" Background="DarkGreen" Foreground="White" VerticalAlignment="Center"/>
+            <Button Content="Скасувати" Command="{Binding CancelProcessingCommand}" IsVisible="{Binding IsProcessing}" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
+            
         </StackPanel>
 
         <Grid Grid.Row="1" ColumnDefinitions="*, *">
             <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" Margin="5">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <Image Source="{Binding OriginalImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" />
+                    <LayoutTransformControl x:Name="OriginalTransformControl" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image Source="{Binding OriginalImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" PointerWheelChanged="Image_PointerWheelChanged" />
+                    </LayoutTransformControl>
                 </ScrollViewer>
             </Border>
             
             <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                    <Image Source="{Binding ResultImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" /> 
+                    <LayoutTransformControl x:Name="ResultTransformControl" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Image Source="{Binding ResultImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" PointerWheelChanged="Image_PointerWheelChanged" /> 
+                    </LayoutTransformControl>
                 </ScrollViewer>
             </Border>
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*, *" Margin="10,5">
+            <TextBlock Grid.Column="0" Text="{Binding OriginalDimensionsText}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="20">
+                <TextBlock Text="{Binding ResultDimensionsText}" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding ProcessingTimeText}" Foreground="Blue" FontWeight="Bold"/>
+            </StackPanel>
         </Grid>
         
     </Grid>

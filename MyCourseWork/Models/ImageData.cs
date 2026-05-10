@@ -20,8 +20,12 @@ public class ImageData
     }
 
     public byte[] Pixels => this.pixels;
+    
     public int Width => this.width;
+    
     public int Height => this.height;
+    
     public int Stride => this.stride;
+    
     public int BytesPerPixel => this.bytesPerPixel;
 }
