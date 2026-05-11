@@ -136,18 +136,25 @@ public partial class MainWindowViewModel : ViewModelBase
             );
             
             if (ResultImage != null)
+            {
                 ResultDimensionsText = $"Результат: {ResultImage.Size.Width} x {ResultImage.Size.Height} px";
+            }
         }
         catch (OperationCanceledException)
         {
             ProcessingTimeText = "Скасовано";
-            Console.WriteLine("Обробку зображення було перервано!");
+        }
+        catch (Exception)
+        {
+            ProcessingTimeText = "Помилка обробки";
         }
         finally
         {
             sw.Stop();
-            if (ProcessingTimeText != "Скасовано")
+            if (ProcessingTimeText != "Скасовано" && ProcessingTimeText != "Помилка обробки")
+            {
                 ProcessingTimeText = $"Час: {sw.ElapsedMilliseconds} мс";
+            }
                 
             IsProcessing = false;
             _cancellationTokenSource?.Dispose();
@@ -187,9 +194,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 await using var stream = await file.OpenWriteAsync();
                 ResultImage.Save(stream);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Помилка збереження файлу: {ex.Message}");
             }
         }
     }
