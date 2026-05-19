@@ -89,19 +89,33 @@ public partial class MainWindowViewModel : ViewModelBase
         if (result.Count > 0)
         {
             _currentFilePath = result[0].Path.LocalPath;
-            OriginalImage = await _fileService.loadImageAsync(_currentFilePath);
 
-            if (OriginalImage != null)
+            try
             {
-                _aspectRatio = (decimal)OriginalImage.Size.Width / (decimal)OriginalImage.Size.Height;
+                OriginalImage = await _fileService.loadImageAsync(_currentFilePath);
+
+                if (OriginalImage != null)
+                {
+                    _aspectRatio = (decimal)OriginalImage.Size.Width / (decimal)OriginalImage.Size.Height;
                 
-                NewWidth = (decimal)OriginalImage.Size.Width;
-                NewHeight = (decimal)OriginalImage.Size.Height;
-                ResultImage = null; 
+                    NewWidth = (decimal)OriginalImage.Size.Width;
+                    NewHeight = (decimal)OriginalImage.Size.Height;
+                    ResultImage = null; 
                 
-                OriginalDimensionsText = $"Оригінал: {OriginalImage.Size.Width} x {OriginalImage.Size.Height} px";
-                ResultDimensionsText = "";
+                    OriginalDimensionsText = $"Оригінал: {OriginalImage.Size.Width} x {OriginalImage.Size.Height} px";
+                    ResultDimensionsText = "";
+                    ProcessingTimeText = "";
+                }
+            }
+            catch (Exception)
+            {
+                OriginalImage = null;
+                ResultImage = null;
+                OriginalDimensionsText = "Помилка: Файл пошкоджений або не є зображенням!";
                 ProcessingTimeText = "";
+                ResultDimensionsText = "";
+            
+                Console.WriteLine("Спроба відкрити невалідний або пошкоджений файл.");
             }
         }
     }
@@ -181,7 +195,8 @@ public partial class MainWindowViewModel : ViewModelBase
             FileTypeChoices = new[]
             {
                 new FilePickerFileType("PNG зображення") { Patterns = new[] { "*.png" } },
-                new FilePickerFileType("JPEG зображення") { Patterns = new[] { "*.jpg", "*.jpeg" } }
+                new FilePickerFileType("JPEG зображення") { Patterns = new[] { "*.jpg", "*.jpeg" } },
+                new FilePickerFileType("BMP зображення") { Patterns = new[] {"*.bmp"} } 
             }
         };
 

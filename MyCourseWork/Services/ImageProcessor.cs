@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic; // --- НОВЕ: Потрібно для IEnumerable
+using System.Collections.Generic; 
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
@@ -17,7 +17,6 @@ public class ImageProcessor : IImageProcessingService
         _fileService = fileService;
     }
     
-    // --- НОВЕ: Додано IEnumerable<IImageFilter> filters у параметри ---
     public async Task<WriteableBitmap?> ProcessImageAsync(
         string inputPath, 
         int newWidth, 
