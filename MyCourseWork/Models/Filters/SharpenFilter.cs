@@ -18,9 +18,9 @@ public class SharpenFilter : IImageFilter
         Array.Copy(srcPixels, resultPixels, srcPixels.Length);
 
         float[,] kernel = {
-            {  -1, -1,  -1 },
-            { -1, 9, -1 },
-            {  -1, -1, -1 }
+            {  0, -1,  -0},
+            { -1, 5, -1 },
+            {  0, -1, 0 }
         };
 
         for (int y = 1; y < height - 1; y++)

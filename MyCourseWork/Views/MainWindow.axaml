@@ -42,17 +42,17 @@
 
         <Grid Grid.Row="1" ColumnDefinitions="*, *">
             <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" Margin="5">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer x:Name="OriginalScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <LayoutTransformControl x:Name="OriginalTransformControl" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Image Source="{Binding OriginalImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" PointerWheelChanged="Image_PointerWheelChanged" />
+                        <Image Source="{Binding OriginalImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" PointerWheelChanged="OriginalImage_PointerWheelChanged" />
                     </LayoutTransformControl>
                 </ScrollViewer>
             </Border>
             
             <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer x:Name="ResultScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <LayoutTransformControl x:Name="ResultTransformControl" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Image Source="{Binding ResultImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" PointerWheelChanged="Image_PointerWheelChanged" /> 
+                        <Image Source="{Binding ResultImage}" Stretch="None" RenderOptions.BitmapInterpolationMode="None" PointerWheelChanged="ResultImage_PointerWheelChanged" /> 
                     </LayoutTransformControl>
                 </ScrollViewer>
             </Border>
