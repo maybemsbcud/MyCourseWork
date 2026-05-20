@@ -6,7 +6,6 @@ namespace MyCourseWork.Views;
 
 public partial class MainWindow : Window
 {
-    // Окремі масштаби для кожного зображення
     private double _originalZoomScale = 1.0;
     private double _resultZoomScale = 1.0;
 
@@ -15,7 +14,6 @@ public partial class MainWindow : Window
         InitializeComponent();
     }
     
-    // Зум чисто для лівого (оригінального) зображення
     private void OriginalImage_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
         if (e.KeyModifiers != KeyModifiers.Control) return;
@@ -30,7 +28,6 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    // Зум чисто для правого (обробленого) зображення
     private void ResultImage_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
         if (e.KeyModifiers != KeyModifiers.Control) return;
