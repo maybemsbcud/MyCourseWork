@@ -3,6 +3,7 @@
         xmlns:vm="using:MyCourseWork.ViewModels"
         x:Class="MyCourseWork.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel" 
+        x:CompileBindings="False"
         Title="Image Resizer">
     
     <Grid RowDefinitions="Auto, *, Auto">
